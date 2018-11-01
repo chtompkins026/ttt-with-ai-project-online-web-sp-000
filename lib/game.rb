@@ -12,10 +12,14 @@ attr_accessor :board, :player_1, :player_2
     [2,4,6]
   ]
 
-  def initialize(p1 = Players::Human.new("X"), p2 = Players::Human.new("O"), board = Board.new)
+  def initialize(p1 = Players::Human.new("X"),
+                 p2 = Players::Human.new("O"),
+                 board = Board.new)
+
     @player_1 = p1
     @player_2 = p2
     @board = board
+
   end
 
   def board
@@ -23,36 +27,20 @@ attr_accessor :board, :player_1, :player_2
   end
 
   def current_player
-    if board.turn_count.even?
-      player_1
-    else
-      player_2
-    end
+    return player_1 if board.turn_count.even?
+    return player_2
   end
 
-  def won?
-   WIN_COMBINATIONS.each do |win_combo|
-     pos1 = win_combo[0]
-     pos2 = win_combo[1]
-     pos3 = win_combo[2]
-
-     position_1 = board.cells[pos1]
-     position_2 = board.cells[pos2]
-     position_3 = board.cells[pos3]
-
-     if position_1 == "X" && position_2 == "X" && position_3 == "X"
-       return win_combo
-     elsif position_1 == "O" && position_2 == "O" && position_3 == "O"
-       return win_combo
-     end
+ def won?
+   WIN_COMBINATIONS.each do |w_c|
+     b = board.cells
+     return w_c if (w_c.all? {|e| b[e] == "X"} || w_c.all?{|e| b[e] == "O"})
    end
-   return false
+    return false
  end
 
  def draw?
-   if !won? && board.full?
-     return true
-   end
+  return true if !won? && board.full?
  end
 
  def over?
@@ -66,17 +54,15 @@ attr_accessor :board, :player_1, :player_2
   end
 
   def winner
-    if !won?
-      return nil
-    else WIN_COMBINATIONS.each do |win_combo|
+    return nil if !won?
+    WIN_COMBINATIONS.each do |win_combo|
       if check_win_combination?('X', win_combo)
         return 'X'
       elsif check_win_combination?('O', win_combo)
         return 'O'
       end
-      end
     end
-  end
+  end #end of winner 
 
   def turn
     puts "Player #{current_player.token}'s turn!"
