@@ -46,11 +46,11 @@ class Board
     end
 
   def full?
-    self.cells.all? {|cell| cell == 'X' || cell == 'O'}
+    self.cells.all? {|cell| cell != " "}
   end
 
   def reset!
-    self.cells=(Array.new(9, " "))
+    self.cells = Array.new(9, " ")
   end
 
   def update(position, player)
