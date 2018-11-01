@@ -1,66 +1,99 @@
-require 'pry'
+class Game
+attr_accessor :board, :player_1, :player_2
 
-class Board
+  WIN_COMBINATIONS = [
+    [0,1,2],
+    [3,4,5],
+    [6,7,8],
+    [0,3,6],
+    [1,4,7],
+    [2,5,8],
+    [0,4,8],
+    [2,4,6]
+  ]
 
-  attr_accessor :cells
+  def initialize(p1 = Players::Human.new("X"),
+                 p2 = Players::Human.new("O"),
+                 board = Board.new)
 
-  def initialize
-    reset!
+    @player_1 = p1
+    @player_2 = p2
+    @board = board
+
   end
 
-  def cells
-    @cells
+  def board
+    @board
   end
 
-  def display
-    puts " #{cells[0]} | #{cells[1]} | #{cells[2]} "
-    puts "-----------"
-    puts " #{cells[3]} | #{cells[4]} | #{cells[5]} "
-    puts "-----------"
-    puts " #{cells[6]} | #{cells[7]} | #{cells[8]} "
+  def current_player
+    return player_1 if board.turn_count.even?
+    return player_2
   end
 
-  def position(pos)
-    index = input_to_index(pos)
-    self.cells[index]
-  end
+ def won?
+   WIN_COMBINATIONS.each do |w_c|
+     b = board.cells
+     return w_c if (w_c.all? {|e| b[e] == "X"} || w_c.all?{|e| b[e] == "O"})
+   end
+    return false
+ end
 
-  def turn_count
-    count = 0
-    self.cells.each do |cell|
-      count += 1 if cell == 'X' || cell == 'O'
+ def draw?
+  return true if !won? && board.full?
+ end
+
+ def over?
+   return true if won? || draw?
+ end
+
+ def check_win_combination?(player, win_combo)
+      win_combo.all? do |position|
+      board.cells[position] == player
     end
-    count
   end
 
-  def taken?(num)
-    number = num.to_i
-    check_pos = self.position(number)
-    return false if check_pos == " " || check_pos == nil
-    return true
+  def winner
+    return nil if !won?
+    WIN_COMBINATIONS.each do |win_combo|
+      if check_win_combination?('X', win_combo)
+        return 'X'
+      elsif check_win_combination?('O', win_combo)
+        return 'O'
+      end
+    end
+  end #end of winner 
+
+  def turn
+    puts "Player #{current_player.token}'s turn!"
+    puts "Pick a move from (1-9):"
+    board.display
+
+    user_input = current_player.move(board)
+
+    if board.valid_move?(user_input)
+      board.update(user_input, current_player)
+    else
+      puts "Invalid move."
+      turn
+    end
   end
 
-  def valid_move?(position)
-      check = position.to_i
-      check.between?(1,9) && !taken?(check)
+  def play
+    until over?
+      turn
     end
 
-  def full?
-    self.cells.all? {|cell| cell != " "}
-  end
-
-  def reset!
-    self.cells = Array.new(9, " ")
-  end
-
-  def update(position, player)
-    index = input_to_index(position)
-    cells[index] = player.token
-  end
-
-  def input_to_index(user_input)
-    user_input.to_i - 1
+    if won?
+      puts "\n"
+      puts "Congratulations #{winner}!"
+    elsif draw?
+      puts "\n"
+      puts "Cat's Game!"
+    end
+    board.display
   end
 
 
-end #end of the Board class
+
+end
